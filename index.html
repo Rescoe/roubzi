@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Portfolio — Art Génératif & Code</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Unbounded:wght@300;400;700;900&display=swap" rel="stylesheet"/>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+
+<!-- NAV -->
+<nav>
+  <a href="#" class="nav-logo" id="nav-logo">NOM —</a>
+  <div class="nav-links">
+    <a href="#projets">Projets</a>
+    <a href="#experiences">Apps</a>
+    <a href="#expositions">Expos</a>
+    <a href="#identite">Contact</a>
+  </div>
+  <div class="nav-status">
+    <span class="dot"></span>
+    <span id="nav-status-text" style="font-size:.65rem;text-transform:uppercase;letter-spacing:.06em"></span>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero" id="hero">
+  <div class="hero-body wrap">
+    <div class="hero-left">
+      <div class="hero-tag" id="hero-tag">— Portfolio</div>
+      <h1 class="hero-title" id="hero-title">
+        Art<br/>
+        <em>génératif</em><br/>
+        &amp; code
+      </h1>
+      <p class="hero-sub" id="hero-sub"></p>
+      <div class="hero-cta">
+        <a href="#experiences" class="btn-primary">Voir les apps ↗</a>
+        <a href="#projets" class="btn-ghost">Projets →</a>
+      </div>
+    </div>
+    <div class="hero-right">
+      <canvas id="canvas-main"></canvas>
+      <span class="hero-canvas-label">Système génératif · temps réel</span>
+    </div>
+  </div>
+  <div class="hero-footer wrap">
+    <div class="hero-stat">
+      <span>Projets actifs</span>
+      <strong id="stat-active">—</strong>
+    </div>
+    <div class="hero-stat">
+      <span>Expositions</span>
+      <strong id="stat-expos">—</strong>
+    </div>
+    <div class="hero-stat">
+      <span>Applications</span>
+      <strong id="stat-apps">—</strong>
+    </div>
+    <div class="hero-stat">
+      <span>Année</span>
+      <strong id="stat-year">—</strong>
+    </div>
+  </div>
+</section>
+
+<!-- TICKER -->
+<div class="ticker-wrap">
+  <div class="ticker-inner" id="ticker"></div>
+</div>
+
+<!-- IDENTITÉ -->
+<section id="identite">
+  <div class="section-header wrap">
+    <span class="section-num">01</span>
+    <span class="section-title">Identité</span>
+    <span class="section-meta">Artiste · Développeur</span>
+  </div>
+  <div class="identity-grid wrap">
+    <div class="identity-left">
+      <h2 class="identity-name" id="identity-name"></h2>
+      <p class="identity-bio" id="identity-bio"></p>
+      <div class="identity-links" id="identity-links"></div>
+    </div>
+    <div class="identity-right">
+      <div class="status-block">
+        <div class="status-label">Statut actuel</div>
+        <div class="status-text" id="status-text"></div>
+        <p class="status-avail" id="status-avail"></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PROJETS -->
+<section id="projets">
+  <div class="section-header wrap">
+    <span class="section-num">02</span>
+    <span class="section-title">Projets sélectionnés</span>
+    <span class="section-meta" id="projets-count">— projets</span>
+  </div>
+  <div class="wrap" style="padding-top:0;padding-bottom:3rem">
+    <div class="projet-header-row">
+      <span class="col-label">#</span>
+      <span class="col-label">Titre</span>
+      <span class="col-label">Médium</span>
+      <span class="col-label">Année</span>
+      <span class="col-label">Statut</span>
+      <span class="col-label">↗</span>
+    </div>
+    <div id="projets-list"></div>
+  </div>
+</section>
+
+<!-- WIP -->
+<section id="wip">
+  <div class="section-header wrap">
+    <span class="section-num">03</span>
+    <span class="section-title">En cours</span>
+    <span class="section-meta">Work in progress</span>
+  </div>
+  <div class="wip-grid wrap" id="wip-grid" style="padding:0"></div>
+</section>
+
+<!-- EXPOSITIONS -->
+<section id="expositions">
+  <div class="section-header wrap">
+    <span class="section-num">04</span>
+    <span class="section-title">Expositions</span>
+    <span class="section-meta">Timeline</span>
+  </div>
+  <div class="wrap" style="padding-bottom:3rem">
+    <div id="expo-list"></div>
+  </div>
+</section>
+
+<!-- APPS -->
+<section id="experiences">
+  <div class="section-header wrap">
+    <span class="section-num">05</span>
+    <span class="section-title">Applications & Expériences</span>
+    <span class="section-meta" id="apps-count">— expériences</span>
+  </div>
+  <div class="apps-grid wrap" id="apps-categories" style="padding:0"></div>
+</section>
+
+<!-- LIENS -->
+<section id="liens">
+  <div class="section-header wrap">
+    <span class="section-num">06</span>
+    <span class="section-title">Liens</span>
+    <span class="section-meta">Annexes</span>
+  </div>
+  <div class="ext-links wrap" id="links-list" style="padding:0"></div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <span class="footer-copy" id="footer-year"></span>
+  <span class="footer-scroll">↑ Haut de page</span>
+</footer>
+  <script type="module" src="/src/main.js"></script>
+
+</body>
+</html>
