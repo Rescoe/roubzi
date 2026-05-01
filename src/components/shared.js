@@ -1,79 +1,11 @@
 // src/components/shared.js
 // ─────────────────────────────────────────────────────────────────
-// Composants et utilitaires partagés entre l'index et les apps.
-// Importer les fonctions nécessaires dans chaque main.js.
+// Utilitaires partagés entre la home et les apps.
+// Tous les liens "retour" utilisent désormais le hash router.
 // ─────────────────────────────────────────────────────────────────
 
 /**
- * Insère le bouton retour vers l'index dans le DOM.
- * Appellé depuis chaque app.
- * @param {string} label - Texte optionnel
- */
-export function insertBackButton(label = 'Index') {
-  const btn = document.createElement('a')
-  btn.href = '../../index.html'   // remonte depuis apps/<cat>/<app>/
-  btn.className = 'btn-back'
-  btn.title = 'Retour au portail'
-  btn.setAttribute('aria-label', "Retour à l'index du portfolio")
-  // Le ::before CSS ajoute déjà '←', on ajoute juste le label
-  const span = document.createElement('span')
-  span.textContent = label
-  btn.appendChild(span)
-  document.body.appendChild(btn)
-}
-
-/**
- * Insère un overlay de métadonnées en haut à droite.
- * @param {{ title: string, year: number|string, medium: string, status?: string }} meta
- */
-export function insertAppMeta(meta) {
-  const overlay = document.createElement('div')
-  overlay.className = 'app-ui-overlay'
-  overlay.innerHTML = `
-    <div></div>
-    <div class="app-ui-meta">
-      <span class="type-label">${meta.title}</span>
-      <span class="type-meta">${meta.medium}</span>
-      <span class="type-meta">${meta.year} · ${meta.status ?? 'live'}</span>
-    </div>
-  `
-  document.body.appendChild(overlay)
-}
-
-/**
- * Formate un pourcentage de progression pour les WIP.
- * @param {number} pct
- */
-export function progressBar(pct) {
-  return `<div class="progress-track">
-    <div class="progress-fill" style="width:${pct}%"></div>
-    <span class="type-meta" style="margin-left:8px">${pct}%</span>
-  </div>`
-}
-
-/**
- * Crée un canvas plein écran et le retourne.
- * @param {HTMLElement} container
- * @returns {HTMLCanvasElement}
- */
-export function createFullscreenCanvas(container = document.body) {
-  const canvas = document.createElement('canvas')
-  canvas.className = 'canvas-fullscreen'
-  container.appendChild(canvas)
-  function resize() {
-    canvas.width  = window.innerWidth
-    canvas.height = window.innerHeight
-  }
-  resize()
-  window.addEventListener('resize', resize)
-  return canvas
-}
-
-/**
- * Anime un nombre de 0 à target (cosmétique).
- * @param {HTMLElement} el
- * @param {number} target
- * @param {number} duration ms
+ * Anime un nombre de 0 à target.
  */
 export function countUp(el, target, duration = 1200) {
   const start = performance.now()
@@ -88,7 +20,7 @@ export function countUp(el, target, duration = 1200) {
 }
 
 /**
- * Retourne l'heure courante formatée HH:MM:SS (pour overlays live).
+ * Retourne l'heure courante formatée HH:MM:SS.
  */
 export function liveTime() {
   const d = new Date()
@@ -98,15 +30,60 @@ export function liveTime() {
 }
 
 /**
- * Observe l'entrée dans le viewport et ajoute une classe 'visible'.
- * @param {string} selector
+ * Formate un pourcentage de progression.
  */
-export function observeEntrance(selector = '[data-reveal]') {
-  const els = document.querySelectorAll(selector)
-  if (!els.length) return
+export function progressBar(pct) {
+  return `<div class="progress-track">
+    <div class="progress-fill" style="width:${pct}%"></div>
+    <span class="type-meta" style="margin-left:8px">${pct}%</span>
+  </div>`
+}
+
+/**
+ * Crée un canvas plein container et le retourne.
+ * Gère son propre resize. Retourne { canvas, cleanup }.
+ */
+export function createFullscreenCanvas(container) {
+  const canvas = document.createElement('canvas')
+  canvas.style.cssText = 'display:block;position:absolute;inset:0;width:100%;height:100%;'
+  container.style.position = 'relative'
+  container.appendChild(canvas)
+
+  function resize() {
+    canvas.width  = container.clientWidth
+    canvas.height = container.clientHeight || window.innerHeight
+  }
+
+  resize()
+  window.addEventListener('resize', resize)
+
+  return {
+    canvas,
+    cleanup: () => {
+      window.removeEventListener('resize', resize)
+      canvas.remove()
+    },
+  }
+}
+
+/**
+ * Observe l'entrée dans le viewport et ajoute la classe 'revealed'.
+ * Retourne disconnect().
+ */
+export function observeEntrance(selector = '[data-reveal]', root = document) {
+  const els = root.querySelectorAll(selector)
+  if (!els.length) return () => {}
+
   const io = new IntersectionObserver(
-    (entries) => entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); io.unobserve(e.target) } }),
+    entries => entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.classList.add('revealed')
+        io.unobserve(e.target)
+      }
+    }),
     { threshold: 0.1 }
   )
+
   els.forEach(el => io.observe(el))
+  return () => io.disconnect()
 }

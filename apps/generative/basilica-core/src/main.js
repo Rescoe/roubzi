@@ -16,7 +16,7 @@ import { UI } from './ui.js';
 import { RenderTuner } from './renderTuner.js'; // Debug panel: T=Toggle, X=Export
 
 // ─── World State ──────────────────────────────────────────────────────────────
-let currentArchetypeKey = 'CATHEDRAL';
+let currentArchetypeKey = 'RIFT';
 let currentMutationKey = 'CRYSTALLIZATION';
 let currentSeed = Math.floor(Math.random() * 999999);
 
@@ -48,63 +48,73 @@ function bootstrap() {
   ui = new UI();
 
   const container = document.getElementById('canvas-container');
-
-  // Init renderer first (creates scene)
   renderer = new Renderer(container);
-
-  // Render tuning panel (T=Toggle, X=Export JSON)
   renderTuner = new RenderTuner(renderer);
 
-  // Build world from current config
   buildWorld();
 
-  // Start loop
   let lastTime = performance.now();
   let tickAccumulator = 0;
+  let rafId;
+  let stopped = false;
 
   function loop() {
-    requestAnimationFrame(loop);
+    if (stopped) return;
+    rafId = requestAnimationFrame(loop);
     const now = performance.now();
-    const deltaMs = Math.min(now - lastTime, 100); // cap to prevent spiral
+    const deltaMs = Math.min(now - lastTime, 100);
     lastTime = now;
     const time = now * 0.001;
 
-    // Simulation update (phase timer)
     simulation.update(deltaMs);
 
-    // Tick-based mutation
     tickAccumulator += deltaMs;
     if (tickAccumulator >= SIMULATION.TICK_INTERVAL_MS) {
       tickAccumulator -= SIMULATION.TICK_INTERVAL_MS;
       simulation.tick_step();
-      // Apply only dirty cells to GPU
       instancing.applyDirty(simulation.cells, simulation.getDirty());
-      // Sync blockchain state
       blockchain.syncState(simulation);
-      // UI update
       ui.update(simulation);
     }
 
-    // Animate energy cells
     instancing.animateEnergy(time);
 
-    // Animate core entity
     const disturbance = router.consumeDisturbance(deltaMs);
     coreEntityObj.update(time, simulation.phaseKey, disturbance);
 
-    // Camera / renderer update
     renderer.update(time, deltaMs);
     renderer.render();
   }
 
   loop();
 
-  // Hide loading screen after first frame paints
   requestAnimationFrame(() => {
     requestAnimationFrame(() => {
       ui.hideLoading();
     });
   });
+
+  // Retourne un cleanup utilisable par le shell
+  return function cleanup() {
+    stopped = true;
+    cancelAnimationFrame(rafId);
+
+    try { if (instancing) instancing.dispose(); } catch(_) {}
+    try { if (coreEntityObj) coreEntityObj.dispose(); } catch(_) {}
+    try { if (renderer) renderer.dispose?.(); } catch(_) {}
+    try { if (router) router.dispose?.(); } catch(_) {}
+
+    // Reset module-level refs
+    renderer = null;
+    simulation = null;
+    instancing = null;
+    coreEntityObj = null;
+    blockchain = null;
+    metadata = null;
+    router = null;
+    ui = null;
+    renderTuner = null;
+  };
 }
 
 // ─── World Build / Rebuild ────────────────────────────────────────────────────
@@ -205,4 +215,6 @@ function buildWorld(resetSeed = false) {
 }
 
 // ─── Entry ───────────────────────────────────────────────────────────────────
-bootstrap();
+export function bootBasilica(root, context = {}) {
+  return bootstrap();
+}

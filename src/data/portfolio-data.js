@@ -1,8 +1,12 @@
 // src/data/portfolio-data.js
 // ─────────────────────────────────────────────────────────────────
 // Source de données centrale du portfolio.
-// Toutes les sections de l'index consomment ces tableaux.
-// Modifier ici pour mettre à jour le contenu sans toucher au HTML.
+// Modifier ici pour mettre à jour le contenu sans toucher au JS.
+//
+// CONVENTION LIENS :
+//   routeId  → route interne #/apps/<routeId>  (pas de target="_blank")
+//   href     → lien externe                    (target="_blank")
+//   ni l'un ni l'autre → non cliquable
 // ─────────────────────────────────────────────────────────────────
 
 export const identity = {
@@ -13,17 +17,16 @@ export const identity = {
   status: { label: 'En expérimentation', active: true },
 }
 
-// ── Liens de contact ─────────────────────────────────────────────
-// Remplacer les href '#' par les vraies URLs
 export const contactLinks = [
-  { label: 'email',     href: 'mailto:studio@example.com',          value: 'studio@example.com' },
-  { label: 'github',    href: 'https://github.com/placeholder',     value: 'github.com/placeholder' },
-  { label: 'instagram', href: 'https://instagram.com/placeholder',  value: '@placeholder' },
-  { label: 'x / twitter', href: 'https://x.com/placeholder',       value: '@placeholder' },
+  { label: 'email',       href: 'mailto:studio@example.com',         value: 'studio@example.com' },
+  { label: 'github',      href: 'https://github.com/placeholder',    value: 'github.com/placeholder' },
+  { label: 'instagram',   href: 'https://instagram.com/placeholder', value: '@placeholder' },
+  { label: 'x / twitter', href: 'https://x.com/placeholder',        value: '@placeholder' },
 ]
 
-// ── Projets mis en avant ──────────────────────────────────────────
 // status: 'published' | 'in_progress' | 'exhibited' | 'archived'
+// routeId : route interne dans le shell  →  #/apps/<routeId>
+// href    : lien externe (nouveau tab)
 export const featuredProjects = [
   {
     id: 'p001',
@@ -31,8 +34,8 @@ export const featuredProjects = [
     year: 2026,
     medium: 'Génératif · Temps réel',
     status: 'in_progress',
-    description: 'Système génératif en cours de développement autour de structures, rythmes et densités architecturales.',
-    href: '/apps/generative/basilica-core/',
+    description: 'Système génératif autour de structures, rythmes et densités architecturales.',
+    routeId: 'basilica-core',
     tags: ['génératif', 'temps réel', 'architecture'],
   },
   {
@@ -41,8 +44,8 @@ export const featuredProjects = [
     year: 2024,
     medium: '3D · Three.js',
     status: 'published',
-    description: 'Géométrie déformable par interaction. Rendu procédural avec shaders personnalisés.',
-    //href: 'apps/3d/app1/',
+    description: 'Géométrie déformable par interaction. Rendu procédural avec shaders.',
+    // routeId: 'membrane',  ← décommenter quand disponible
     tags: ['3D', 'shaders', 'interactif'],
   },
   {
@@ -51,13 +54,11 @@ export const featuredProjects = [
     year: 2023,
     medium: 'Phygital · LED · OSC',
     status: 'exhibited',
-    description: 'Cartographie de données sur trame physique de LED pilotée via protocole OSC.',
-    //href: 'apps/phygital/app1/',
+    description: 'Cartographie de données sur trame physique de LED via protocole OSC.',
     tags: ['phygital', 'LED', 'installation'],
   },
 ]
 
-// ── Projets en cours ──────────────────────────────────────────────
 export const inProgressProjects = [
   {
     id: 'wip001',
@@ -82,7 +83,6 @@ export const inProgressProjects = [
   },
 ]
 
-// ── Œuvres exposées ───────────────────────────────────────────────
 export const exhibitedWorks = [
   {
     id: 'e001',
@@ -118,54 +118,52 @@ export const exhibitedWorks = [
   },
 ]
 
-// ── Liens annexes ─────────────────────────────────────────────────
 export const externalLinks = [
-  { label: 'Code source — GitHub',     href: 'https://github.com/placeholder', type: 'repo' },
-  { label: 'Documentation technique',  href: '#',                              type: 'doc' },
-  { label: 'Archive Behance',          href: '#',                              type: 'archive' },
-  { label: 'NFT / On-chain works',     href: '#',                              type: 'web3' },
-  { label: 'Contact studio',           href: 'mailto:studio@example.com',      type: 'contact' },
+  { label: 'Code source — GitHub',    href: 'https://github.com/placeholder', type: 'repo' },
+  { label: 'Documentation technique', href: '#',                               type: 'doc' },
+  { label: 'Archive Behance',         href: '#',                               type: 'archive' },
+  { label: 'NFT / On-chain works',    href: '#',                               type: 'web3' },
+  { label: 'Contact studio',          href: 'mailto:studio@example.com',       type: 'contact' },
 ]
 
-// ── Registre des apps ─────────────────────────────────────────────
-// Utilisé pour construire la section "expériences" de l'index.
-// Pour référencer une nouvelle app : ajouter un objet ici.
+// routeId → route interne #/apps/<routeId>
+// href    → lien externe
 export const appRegistry = [
+  {
+    category: 'generative',
+    label: 'Génératif · Temps réel',
+    description: 'Systèmes génératifs, structures évolutives et compositions algorithmiques.',
+    apps: [
+      {
+        id: 'gen-basilica-core',
+        title: 'BASILICA CORE',
+        routeId: 'basilica-core',
+        status: 'live',
+        year: 2026,
+      },
+    ],
+  },
   {
     category: '3d',
     label: '3D · Volume',
     description: 'Explorations volumiques, sculptures numériques et scènes immersives.',
-    projectCount: 2,
     apps: [
-				{
-				  id: 'gen-basilica-core',
-				  title: 'BASILICA CORE',
-				  href: '/apps/generative/basilica-core/',
-				  status: 'live',
-				  year: 2026,
-				},
-				{ id: '3d-app2', title: 'LATTICE v.2', href: 'apps/3d/app2/',   status: 'live',   year: 2024 },
+      {
+        id: '3d-lattice',
+        title: 'LATTICE v.2',
+        // routeId: 'lattice',  ← décommenter quand disponible
+        status: 'live',
+        year: 2024,
+      },
     ],
   },
   /*
   {
-    category: 'generative',
-    label: 'Génératif · 2D',
-    description: 'Systèmes autonomes, algorithmes de croissance et patterns procéduraux.',
-    projectCount: 2,
-    apps: [
-      { id: 'gen-app1', title: 'FIELD',   href: 'apps/generative/app1/', status: 'live',   year: 2024 },
-      { id: 'gen-app2', title: 'DRIFT',   href: 'apps/generative/app2/', status: 'live',   year: 2023 },
-    ],
-  },
-  {
     category: 'phygital',
     label: 'Phygital · Installation',
-    description: 'Passerelles entre espace physique et signal numérique. Mapping, LED, capteurs.',
-    projectCount: 2,
+    description: 'Passerelles entre espace physique et signal numérique.',
     apps: [
-      { id: 'phy-app1', title: 'SIGNAL',   href: 'apps/phygital/app1/', status: 'live',   year: 2023 },
-      { id: 'phy-app2', title: 'STRATA',   href: 'apps/phygital/app2/', status: 'wip',    year: 2024 },
+      { id: 'phy-signal', title: 'SIGNAL', routeId: 'signal', status: 'live', year: 2023 },
     ],
   },
   */
