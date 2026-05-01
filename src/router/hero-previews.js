@@ -6,15 +6,17 @@
 // ─────────────────────────────────────────────────────────────────
 
 // src/router/hero-previews.js
-
-// src/router/hero-previews.js
+// ─────────────────────────────────────────────────────────────────
+// Registre des previews affichables dans le hero de la home.
+// Chaque entrée doit exposer : mount(container, context) → unmount()
+// ─────────────────────────────────────────────────────────────────
 
 export const HERO_PREVIEWS = [
   {
     id: 'basilica-core',
     label: 'BASILICA CORE · Aperçu',
     mount: async (container, context = {}) => {
-      const mod = await import('/apps/generative/basilica-core/app.js')
+      const mod = await import('../../apps/generative/basilica-core/app.js')
 
       if (typeof mod.initBasilicaCore === 'function') {
         return mod.initBasilicaCore(container, { ...context, preview: true })

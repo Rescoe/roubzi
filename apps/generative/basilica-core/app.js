@@ -2,7 +2,6 @@
 
 const STYLE_ID = 'basilica-core-inline-style'
 const HTML_URL = '/apps/generative/basilica-core/index.html'
-const MODULE_URL = '/apps/generative/basilica-core/src/main.js'
 
 function scopeCss(cssText, scopeSelector, isPreview = false) {
   let scoped = cssText
@@ -125,9 +124,10 @@ function applyPreviewDomTweaks(root) {
 let activeInstance = null
 
 export async function initBasilicaCore(container, context = {}) {
-  // Guard : empêche un double montage simultané
   if (activeInstance) {
-    try { activeInstance() } catch(_) {}
+    try {
+      activeInstance()
+    } catch (_) {}
     activeInstance = null
   }
 
@@ -139,7 +139,9 @@ export async function initBasilicaCore(container, context = {}) {
     : 'position:relative;width:100%;'
 
   const response = await fetch(HTML_URL, { cache: 'no-store' })
-  if (!response.ok) throw new Error(`Unable to load BASILICA HTML: ${response.status}`)
+  if (!response.ok) {
+    throw new Error(`Unable to load BASILICA HTML: ${response.status}`)
+  }
 
   const htmlText = await response.text()
   const parser = new DOMParser()
@@ -154,17 +156,18 @@ export async function initBasilicaCore(container, context = {}) {
   `
 
   const root = markRoot(container.querySelector('.basilica-embed-root'), isPreview)
-  if (!root) throw new Error('BASILICA root injection failed')
+  if (!root) {
+    throw new Error('BASILICA root injection failed')
+  }
 
-  if (isPreview) applyPreviewDomTweaks(root)
+  if (isPreview) {
+    applyPreviewDomTweaks(root)
+  }
 
   let moduleCleanup = null
 
-  // Import avec cache-bust pour forcer un re-exec propre au second montage
-  const bustUrl = `${MODULE_URL}?t=${Date.now()}`
-
   try {
-    const mod = await import(/* @vite-ignore */ bustUrl)
+    const mod = await import('./src/main.js')
 
     if (typeof mod.bootBasilica === 'function') {
       moduleCleanup = await mod.bootBasilica(root, context)
@@ -182,10 +185,14 @@ export async function initBasilicaCore(container, context = {}) {
     activeInstance = null
 
     if (typeof moduleCleanup === 'function') {
-      try { moduleCleanup() } catch(_) {}
+      try {
+        moduleCleanup()
+      } catch (_) {}
     }
 
-    if (styleEl?.parentNode) styleEl.parentNode.removeChild(styleEl)
+    if (styleEl?.parentNode) {
+      styleEl.parentNode.removeChild(styleEl)
+    }
 
     container.innerHTML = ''
     container.style.cssText = ''
