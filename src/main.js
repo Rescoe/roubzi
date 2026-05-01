@@ -11,6 +11,35 @@ if (cursor && window.matchMedia('(pointer:fine)').matches) {
   }, { passive: true })
 }
 
+
+// ── HAMBURGER ──
+const hamburger = document.getElementById('nav-hamburger')
+const mobileMenu = document.getElementById('nav-mobile-menu')
+
+if (hamburger && mobileMenu) {
+  hamburger.addEventListener('click', () => {
+    const open = mobileMenu.classList.toggle('is-open')
+    hamburger.classList.toggle('is-open', open)
+    hamburger.setAttribute('aria-expanded', open)
+  })
+
+  mobileMenu.querySelectorAll('.nav-mobile-link').forEach(link => {
+    link.addEventListener('click', () => {
+      mobileMenu.classList.remove('is-open')
+      hamburger.classList.remove('is-open')
+    })
+  })
+
+  // ferme le menu si on clique ailleurs
+  document.addEventListener('click', e => {
+    if (!hamburger.contains(e.target) && !mobileMenu.contains(e.target)) {
+      mobileMenu.classList.remove('is-open')
+      hamburger.classList.remove('is-open')
+    }
+  })
+}
+
+
 const navLogo = document.getElementById('nav-logo')
 if (navLogo) navLogo.textContent = `${identity.name?.split(' ')[0] || 'Portfolio'} —`
 

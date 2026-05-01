@@ -160,7 +160,8 @@ export function mountHome(shell) {
     `).join('')
   }
 
-// Hero preview
+// Hero preview — un seul preview, un seul mount actif
+// Hero preview — un seul mount, responsive via CSS grid
 const previewMount = document.getElementById('hero-preview-mount')
 const previewLabel = document.getElementById('hero-preview-label')
 let unmountPreview = null
@@ -168,7 +169,7 @@ let unmountPreview = null
 if (previewMount) {
   const preview = pickRandomPreview()
   if (preview) {
-    if (previewLabel) previewLabel.textContent = preview.label
+    previewLabel.textContent = preview.label || ''
     Promise.resolve(preview.mount(previewMount, {}))
       .then(cleanup => {
         unmountPreview = typeof cleanup === 'function' ? cleanup : null
@@ -385,9 +386,9 @@ if (previewMount) {
   cleanups.push(() => window.removeEventListener('scroll', onNavScroll))
 
   // ── UNMOUNT ───────────────────────────────────────────────────
-  return function unmountHome() {
-    if (typeof unmountPreview === 'function') unmountPreview()
-    cleanups.forEach(fn => fn())
-    shell.innerHTML = ''
-  }
+return function unmountHome() {
+  if (typeof unmountPreview === 'function') unmountPreview()
+  cleanups.forEach(fn => fn())
+  shell.innerHTML = ''
+}
 }
