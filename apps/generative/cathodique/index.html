@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <!-- Votre head identique -->
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Generative Cathodique</title>
+  <link rel="preconnect" href="https://api.fontshare.com" />
+  <link href="https://api.fontshare.com/v2/css?f[]=general-sans@400,500,600,700&f[]=boska@400,500,700&display=swap" rel="stylesheet" />
+  <style>
+ :root, [data-theme="light"] {
+  --bg: #050505;
+  --panel: rgba(10, 10, 10, 0.56);
+  --border: rgba(255, 255, 255, 0.12);
+  --text: #f5f3ee;
+  --muted: rgba(245, 243, 238, 0.74);
+  --accent: #7be0df;
+  --shadow: 0 16px 48px rgba(0, 0, 0, 0.4);
+  --radius: 999px;
+  --font-body: 'General Sans', sans-serif;
+  --font-display: 'Boska', serif;
+}
+
+* , *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; }
+body {
+  background: #000;
+  color: var(--text);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+button, input { font: inherit; }
+button {
+  border: 0;
+  color: inherit;
+  background: none;
+  cursor: pointer;
+}
+
+.app {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  background: #000;
+  overflow: hidden;
+}
+
+canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  background: #000;
+  pointer-events: none;
+}
+
+.topbar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  pointer-events: none;
+}
+
+.title-wrap {
+  pointer-events: auto;
+  display: grid;
+  gap: 0.2rem;
+  padding: 0.85rem 1rem;
+  border-radius: 1.2rem;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  backdrop-filter: blur(12px);
+  box-shadow: var(--shadow);
+}
+
+.eyebrow {
+  margin: 0;
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+h1 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.5rem, 1.1rem + 1.4vw, 2.6rem);
+  line-height: 0.95;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+}
+
+.hud {
+  position: absolute;
+  left: 50%;
+  bottom: 1.25rem;
+  transform: translateX(-50%);
+  z-index: 999;
+  width: min(920px, calc(100vw - 1.5rem));
+  display: grid;
+  gap: 0.8rem;
+  padding: 0.9rem 1rem;
+  border-radius: 1.4rem;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  backdrop-filter: blur(14px);
+  box-shadow: var(--shadow);
+  pointer-events: auto;
+  transition: all 300ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  max-height: 30vh;
+  overflow-y: auto;
+}
+
+.hud:not(.hidden) {
+  inset: 0 !important;
+  left: 0 !important;
+  bottom: 0 !important;
+  transform: none !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  border-radius: 0 !important;
+  background: rgba(0, 0, 0, 0.01) !important;  /* ← QUASI FULL TRANSPARENT */
+  backdrop-filter: blur(8px) !important;       /* ← Flou léger */
+  padding: clamp(2rem, 5vw, 4rem) !important;
+  max-height: none !important;
+  overflow-y: auto !important;
+  scrollbar-width: thin;
+  scrollbar-color: var(--accent) transparent;
+}
+
+.hud:not(.hidden)::-webkit-scrollbar {
+  width: 6px;
+}
+
+.hud:not(.hidden)::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.hud:not(.hidden)::-webkit-scrollbar-thumb {
+  background: var(--accent);
+  border-radius: 3px;
+}
+
+.hud.hidden {
+  opacity: 0;
+  transform: translateX(-50%) translateY(10px);
+  pointer-events: none;
+}
+
+.icon-btn svg {
+  transition: all 200ms ease;
+}
+
+.hud-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.stats span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2rem;
+  padding: 0.4rem 0.7rem;
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 0.83rem;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.btn {
+  min-height: 44px;
+  padding: 0 1rem;
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: transform 160ms ease, background 160ms ease, border-color 160ms ease;
+}
+
+.btn:hover { transform: translateY(-1px); }
+.btn-primary { background: rgba(123, 224, 223, 0.16); border-color: rgba(123, 224, 223, 0.42); }
+
+.sliders {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.8rem;
+}
+
+label {
+  display: grid;
+  gap: 0.35rem;
+  font-size: 0.74rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+input[type="range"] {
+  width: 100%;
+  accent-color: var(--accent);
+}
+
+.hint {
+  position: fixed;
+  top: 1.25rem;
+  right: 1.25rem;
+  z-index: 1001;
+  pointer-events: auto;
+}
+
+.icon-btn {
+  width: 44px;
+  height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  backdrop-filter: blur(12px);
+  box-shadow: var(--shadow);
+  transition: all 200ms ease;
+}
+
+.icon-btn:hover {
+  background: rgba(123, 224, 223, 0.2);
+  transform: scale(1.05);
+}
+
+.hidden { 
+  display: none !important; 
+}
+
+@media (max-width: 700px) {
+  .topbar {
+    align-items: flex-start;
+    padding: 0.8rem;
+  }
+  .title-wrap { max-width: calc(100vw - 4.5rem); }
+  .hud {
+    bottom: 0.8rem;
+    width: calc(100vw - 1rem);
+    padding: 0.8rem;
+  }
+  .sliders { grid-template-columns: 1fr; }
+  .stats span { font-size: 0.76rem; }
+  h1 { font-size: clamp(1.2rem, 1rem + 1vw, 1.8rem); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+  </style>
+</head>
+<body>
+  <!-- Votre HTML identique -->
+  <main class="app" aria-label="Canvas génératif plein écran fidèle au script Python">
+    <canvas id="artCanvas"></canvas>
+
+    <div class="topbar">
+      <div class="title-wrap">
+        <p class="eyebrow">Retravaillé en JS depuis un travail effectué sur python en 2023</p>
+        <h1>Cathodique - Louf x Roubzi - 2023</h1>
+      </div>
+    </div>
+
+    <div class="hint">
+      <button id="toggleHud" class="icon-btn" type="button" aria-label="Afficher ou masquer les contrôles">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 12h16"></path><path d="M4 6h16"></path><path d="M4 18h16"></path></svg>
+      </button>
+    </div>
+
+  <section id="hud" class="hud hidden" aria-label="Contrôles de l'animation">
+      <div class="hud-top">
+        <div class="stats" aria-live="polite">
+          <span id="nbValue">NB 8</span>
+          <span id="penValue">Pen 3</span>
+          <span id="loopValue">Cycle 0</span>
+          <span id="rgbValue">RGB 0,0,0</span>
+        </div>
+        <div class="actions">
+          <button id="toggleButton" class="btn btn-primary" type="button">Pause</button>
+          <button id="resetButton" class="btn" type="button">Reset</button>
+          <button id="clearButton" class="btn" type="button">Clear</button>
+        </div>
+      </div>
+      <div class="sliders">
+        <label>
+          Vitesse
+          <input id="speedControl" type="range" min="1" max="100" value="72" />
+        </label>
+        <label>
+          Échelle
+          <input id="scaleControl" type="range" min="1" max="10" value="1" />
+        </label>
+        <!-- NOUVEAU SLIDER pour incrément NB -->
+        <label>
+          Incr. NB
+          <input id="nbIncrementControl" type="range" min="1" max="50" value="10" />
+          <span id="nbIncrementValue" style="font-size: 0.7rem; color: var(--muted);">10</span>
+        </label>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    (() => {
+      // Votre script IDENTIQUE + 3 ajouts minimes
+      const canvas = document.getElementById('artCanvas');
+      const ctx = canvas.getContext('2d');
+      const hud = document.getElementById('hud');
+      const toggleHud = document.getElementById('toggleHud');
+      const speedControl = document.getElementById('speedControl');
+      const scaleControl = document.getElementById('scaleControl');
+      const nbIncrementControl = document.getElementById('nbIncrementControl'); // ← AJOUT
+      const nbIncrementValue = document.getElementById('nbIncrementValue'); // ← AJOUT
+      const toggleButton = document.getElementById('toggleButton');
+      const resetButton = document.getElementById('resetButton');
+      const clearButton = document.getElementById('clearButton');
+
+      const nbValue = document.getElementById('nbValue');
+      const penValue = document.getElementById('penValue');
+      const loopValue = document.getElementById('loopValue');
+      const rgbValue = document.getElementById('rgbValue');
+
+      let running = true;
+      let animationId = null;
+      let lastTime = 0;
+      let accumulator = 0;
+
+      const state = {
+        pen: 3,
+        red: 0,
+        green: 0,
+        blue: 0,
+        NB: 8,
+        NBIncrement: 10, // ← AJOUT
+        outerLoop: 0,
+        innerLoop: 0,
+        currentPoints: null,
+        currentIndex: 0,
+        scale: 1,
+      };
+
+      // Toutes vos fonctions IDENTIQUES...
+      function resizeCanvas() {
+        const ratio = window.devicePixelRatio || 1;
+        const w = window.innerWidth;
+        const h = window.innerHeight;
+        canvas.width = Math.floor(w * ratio);
+        canvas.height = Math.floor(h * ratio);
+        canvas.style.width = w + 'px';
+        canvas.style.height = h + 'px';
+        ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        clearCanvas();
+        state.currentPoints = null;
+        state.currentIndex = 0;
+      }
+
+      function clearCanvas() {
+        ctx.save();
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = '#000';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.restore();
+      }
+
+      function resetState() {
+        state.pen = 3;
+        state.red = 0;
+        state.green = 0;
+        state.blue = 0;
+        state.NB = 8;
+        state.NBIncrement = 10; // ← AJOUT
+        state.outerLoop = 0;
+        state.innerLoop = 0;
+        state.currentPoints = null;
+        state.currentIndex = 0;
+        clearCanvas();
+        updateReadout();
+      }
+
+      function updateReadout() {
+        nbValue.textContent = `NB ${state.NB}`;
+        penValue.textContent = `Pen ${state.pen}`;
+        loopValue.textContent = `Cycle ${state.outerLoop}`;
+        rgbValue.textContent = `RGB ${state.red},${state.green},${state.blue}`;
+        state.scale = Number(scaleControl.value) / 100;
+        nbIncrementValue.textContent = state.NBIncrement; // ← AJOUT
+      }
+
+      function updateColorCycle() {
+        const c = 4;
+        if (state.red <= c && state.green <= c && state.blue < 255 - c) {
+          state.blue += c;
+        } else if (state.red <= c && state.green < 255 - c && state.blue > 255 - c) {
+          state.green += c;
+        } else if (state.red <= c && state.green > c && state.blue > c) {
+          state.blue -= c;
+        } else if (state.red < 255 - c && state.green >= 255 - c && state.blue <= c) {
+          state.red += c;
+        } else if (state.red > 255 - c && state.green > 255 - c && state.blue < 255 - c) {
+          state.blue += c;
+        } else if (state.red > 255 - c && state.green > c && state.blue > 255 - c) {
+          state.green -= c;
+        } else if (state.red > 255 - c && state.green <= c && state.blue > c) {
+          state.blue -= c;
+        } else if (state.red > c && state.green <= c && state.blue <= c) {
+          state.red -= c;
+        }
+      }
+
+function buildShapePoints(NB) {
+  let amplitude = 1;
+  let offset = 2;
+  const increment = 2;
+  const points = [];
+  // ← MODIF : factor plus petit pour rester dans l'écran
+  
+  const factor = Math.min(canvas.width, canvas.height) * 0.07 * state.scale;
+  
+  for (let i = 0; i < 360; i++) {
+    const angle = i * Math.PI / 180;
+    if (i < 180) {
+      offset += increment;
+      amplitude += increment / 2;
+    } else {
+      offset -= increment;
+      amplitude -= increment / 2;
+    }
+    const radius = offset + amplitude * Math.sin(NB * angle);
+    const x = radius * Math.cos(angle) * factor;
+    const y = radius * Math.sin(angle) * factor;
+    points.push({ x, y });
+  }
+  return points;
+}
+
+      function beginShapeIfNeeded() {
+        if (!state.currentPoints) {
+          state.currentPoints = buildShapePoints(state.NB);
+          state.currentIndex = 0;
+        }
+      }
+      function finishShape() {
+        state.innerLoop += 1;
+        state.NB += state.NBIncrement; // ← MODIF : utilise state.NBIncrement
+
+        if (state.pen === 10) {
+          state.pen = 1;
+          clearCanvas();
+          state.NB -= 8;
+        }
+        state.pen += 1;
+
+        if (state.innerLoop >= 5) {
+          state.innerLoop = 0;
+          state.outerLoop += 1;
+          clearCanvas();
+        }
+
+        state.currentPoints = null;
+        state.currentIndex = 0;
+        updateReadout();
+      }
+
+
+function drawOneStep() {
+  beginShapeIfNeeded();
+  const points = state.currentPoints;
+
+  if (state.currentIndex >= points.length) {
+    finishShape();
+    return;
+  }
+
+  // ← MODIF UNIQUEMENT CES 2 LIGNES
+  const cx = canvas.width / 2 + 80;  // ← +80px pour décaler à droite
+  const cy = canvas.height / 2; // Au lieu de window.innerHeight / 2
+  // →
+
+  const point = points[state.currentIndex];
+  const previous = points[Math.max(0, state.currentIndex - 1)];
+
+  updateColorCycle();
+  ctx.strokeStyle = `rgb(${state.red}, ${state.green}, ${state.blue})`;
+  ctx.lineWidth = state.pen;
+  ctx.beginPath();
+
+  if (state.currentIndex === 0) {
+    ctx.moveTo(cx + point.x, cy + point.y);
+    ctx.lineTo(cx + point.x, cy + point.y);
+  } else {
+    ctx.moveTo(cx + previous.x, cy + previous.y);
+    ctx.lineTo(cx + point.x, cy + point.y);
+  }
+
+  ctx.stroke();
+  state.currentIndex += 1;
+  updateReadout();
+}
+
+      function animate(timestamp) {
+        if (!lastTime) lastTime = timestamp;
+        const delta = timestamp - lastTime;
+        lastTime = timestamp;
+        accumulator += delta;
+
+        const speed = Number(speedControl.value);
+        const interval = Math.max(1, 105 - speed);
+        const stepsPerTick = speed > 80 ? 2 : 1;
+
+        while (accumulator >= interval) {
+          for (let i = 0; i < stepsPerTick; i++) drawOneStep();
+          accumulator -= interval;
+        }
+
+        if (running) animationId = requestAnimationFrame(animate);
+      }
+
+      toggleButton.addEventListener('click', () => {
+        running = !running;
+        toggleButton.textContent = running ? 'Pause' : 'Relancer';
+        if (running) {
+          lastTime = 0;
+          animationId = requestAnimationFrame(animate);
+        } else if (animationId) {
+          cancelAnimationFrame(animationId);
+        }
+      });
+
+      resetButton.addEventListener('click', () => {
+        resetState();
+      });
+
+      clearButton.addEventListener('click', () => {
+        clearCanvas();
+      });
+      // ÉVÉNEMENTS identiques + 1 seul ajout
+      scaleControl.addEventListener('input', () => {
+        state.scale = Number(scaleControl.value) / 100;
+        clearCanvas();
+        state.currentPoints = null;
+        state.currentIndex = 0;
+        updateReadout();
+      });
+
+      // ← AJOUT UNIQUEMENT CES 4 LIGNES
+      nbIncrementControl.addEventListener('input', () => {
+        state.NBIncrement = Number(nbIncrementControl.value);
+        nbIncrementValue.textContent = state.NBIncrement;
+      });
+
+toggleHud.addEventListener('click', () => {
+  hud.classList.toggle('hidden');
+  const isHidden = hud.classList.contains('hidden');
+  toggleHud.setAttribute('aria-label', isHidden ? 'Afficher les contrôles' : 'Masquer les contrôles');
+  
+  // ← AJOUT : icône qui change (barres → X)
+  const svg = toggleHud.querySelector('svg path');
+  if (isHidden) {
+    svg.setAttribute('d', 'M4 12h16M4 6h16M4 18h16'); // Barres
+  } else {
+    svg.setAttribute('d', 'M18 6L6 18M6 6l12 12'); // Croix X
+  }
+});
+
+      window.addEventListener('resize', resizeCanvas);
+
+      resizeCanvas();
+      resetState();
+      updateReadout();
+      animationId = requestAnimationFrame(animate);
+    })();
+  </script>
+</body>
+</html>

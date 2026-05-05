@@ -7,4 +7,6 @@
 
 export const appRoutes = {
   'basilica-core': () => import('../../apps/generative/basilica-core/index.js'),
+  'cathodique': () => import('../../apps/generative/cathodique/index.js'),
+
 }
